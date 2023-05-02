@@ -6,8 +6,8 @@ from node import Node, NodeType
 
 
 class Player(Enum): 
-    FIXER = 0
-    CUTTER = 1
+    FIXER = 1
+    CUTTER = 2
 
 
 class GameState:
@@ -50,16 +50,27 @@ class GameState:
         return False
     
     
-    def move(self, node_1, node_2):
+    def move(self, node_1, node_2) -> int:
         if not self.valid_mode(node_1, node_2):
             raise Exception("Invalid move")
         
         if self.player_turn == Player.CUTTER:
             self.__cut(node_1, node_2)
-            self.player_turn = Player.FIXER
         else:
             self.__fix(node_1, node_2)
-            self.player_turn = Player.CUTTER
+        
+        win = self.winner()
+        reward = 0
+        if win == Player.FIXER and self.player_turn == Player.FIXER:
+            reward = 1
+        elif win == Player.CUTTER and self.player_turn == Player.CUTTER:
+            reward = 1
+        else:
+            reward = -1
+        
+        self.player_turn = Player.FIXER if self.player_turn == Player.CUTTER else Player.CUTTER
+            
+        return reward
 
     
 

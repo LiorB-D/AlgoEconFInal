@@ -7,6 +7,10 @@ class Player(Enum):
     FIXER = 1
     CUTTER = 2
 
+### -1 = Reinforced Edge
+### 0 = No Edge
+### 1 = Normal Edge
+
 
 class ShannonSwitchingGame:
 

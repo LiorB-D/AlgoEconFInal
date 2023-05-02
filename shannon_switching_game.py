@@ -25,6 +25,7 @@ class ShannonSwitchingGame:
         """
         n, m = adj_matrix.shape
         self.num_nodes = max(n, m)
+        assert np.all(adj_matrix == adj_matrix.T), "Adjacency matrix must be symmetric"
         assert np.all(np.logical_or(adj_matrix == 0, adj_matrix == 1)), "Graph must only contain 0s or 1s to begin"
         assert n == m, "Adjacency matrix must be square"
         assert n <= 20, "Adjacency matrix must be at most 20x20"
@@ -173,32 +174,3 @@ class ShannonSwitchingGame:
             rewards = self.__fix(min_node, max_node)
         self.player_turn = Player.FIXER if self.player_turn == Player.CUTTER else Player.CUTTER
         return rewards
-            
-
-
-    
-
-'''
-# TESTING - 
-adj = np.array([
-    [0, 0, 0],
-    [0, 0, 0],
-    [0, 0, 0]
-])
-
-game = ShannonSwitchingGame(adj, 0, 1)
-
-# test get_winner
-assert game.get_winner() == Player.CUTTER
-
-adj2 = np.array([
-    [0, 1, 1],
-    [1, 0, 1],
-    [1, 1, 0]
-])
-game = ShannonSwitchingGame(adj2, 0, 1)
-
-assert game.get_winner() == None
-'''
-
-

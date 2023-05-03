@@ -8,10 +8,15 @@ FIXER_WIN = 1, -1
 # take adjacency matrix as input
 def simulate(adj_matrix: np.ndarray) -> int: 
     SSG = ShannonSwitchingGame(adj_matrix)
-    QRL = QHandler(SSG)
+    QRL_cutter = QHandler(SSG)
+    QRL_fixer = QHandler(SSG)
 
     reward = 0, 0
     while reward == (0, 0):
+        if SSG.player_turn == Player.CUTTER:
+            QRL = QRL_cutter
+        else:
+            QRL = QRL_fixer
         move, _ = QRL.get_best_move()
         print(move)
         reward = SSG.take_action(move)

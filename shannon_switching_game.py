@@ -1,5 +1,6 @@
-from enum import Enum
 from collections import deque
+from enum import Enum
+
 import numpy as np
 
 
@@ -38,7 +39,7 @@ class ShannonSwitchingGame:
         pad = max(20 - n, 0)
 
         # Apply the padding
-        self.adj_matrix = np.pad(adj_matrix, ((0, pad), (0, pad)), 'constant', constant_values=0)
+        self.adj_matrix : np.ndarray = np.pad(adj_matrix, ((0, pad), (0, pad)), 'constant', constant_values=0)
 
         self.source : int = 0
         self.target : int = 1

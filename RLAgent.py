@@ -3,6 +3,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import numpy as np
 import random
+from shannon_switching_game import ShannonSwitchingGame
 
 # Define the Experience class, which holds information about a state-action transition
 class Experience:
@@ -17,7 +18,7 @@ class Experience:
 
 # Define the QHandler class, which is responsible for the Q-Learning process
 class QHandler:
-    def __init__(self, gameState):
+    def __init__(self, gameState: ShannonSwitchingGame):
         self.expReplay = []  # Experience replay buffer
         self.setup_Model()  # Set up the neural network model
         self.epsilon = 1  # Initial exploration rate

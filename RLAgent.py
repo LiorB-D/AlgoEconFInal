@@ -36,6 +36,11 @@ class QHandler:
             loss='mean_squared_error'
         )
 
+        self.updateTargetNetwork()
+    
+    def updateTargetNetwork(self):
+        self.targetModel = keras.models.clone_model(self.model)
+
     def get_best_move(self, adjM):
         valid_moves = self.game_state.valid_moves()
         valid_move_indices = self.get_valid_indices(valid_moves)
@@ -53,19 +58,35 @@ class QHandler:
 
     def trainQNetwork(self):
         xs = []
-        ys = []
+
+
+        xPrimes = []
+
         for ind, exp in enumerate(self.expReplay):
-            if (1 + ind) / len(self.expReplay) < random.random(): # More recent experiences are more likely to be chosen
-                stateArr = self.matrixPositionToArrayIndex(exp.s)
-                xs.append(stateArr)
-                y = self.model.predict(np.array([stateArr]))[0]
-                if not exp.r == 1:
-                    y[self.matrixPositionToArrayIndex(exp.a[0],exp.a[1])] = exp.r
-                else:
-                    nextStateArr = self.matrixPositionToArrayIndex(exp.sPrime)
-                    y[self.matrixPositionToArrayIndex(exp.a[0],exp.a[1])] = self.discount * np.max(self.model.predict(np.array([nextStateArr])))
+            stateArr = self.matrixPositionToArrayIndex(exp.s)
+            xs.append(stateArr)
+            if exp.r == 0:
+                xPrimes.append(stateArr)
+            else:
+                nextStateArr = self.matrixPositionToArrayIndex(exp.sPrime)
+                xPrimes.append(nextStateArr)
+        
+
+        ys = self.model.predict(np.array(xs), verbose = 0)
+        ysTarget = self.targetModel.predict(np.array(xPrimes), verbose = 0)
+
+
+        for ind, exp in enumerate(self.expReplay):
+            if not exp.r == 0:
+                ys[self.matrixPositionToArrayIndex(exp.a[0],exp.a[1])] = exp.r
+            else:
+                valid_moves = np.argwhere(exp.state == 1)
+                valid_move_indices = self.get_valid_indices(valid_moves)
+                nextStateArr = self.matrixPositionToArrayIndex(exp.sPrime)
+                choices = ysTarget[ind][valid_move_indices]
+                ys[self.matrixPositionToArrayIndex(exp.a[0],exp.a[1])] = self.discount * np.max(choices)
                 
-                ys.append(y)
+               
 
 
         rng = np.random.default_rng()

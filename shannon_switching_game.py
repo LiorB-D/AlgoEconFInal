@@ -1,5 +1,5 @@
 from enum import Enum
-
+from collections import deque
 import numpy as np
 
 
@@ -24,6 +24,8 @@ class ShannonSwitchingGame:
         - target: The index of the target node.
         """
         n, m = adj_matrix.shape
+        self.num_nodes = max(n, m)
+        assert np.all(adj_matrix == adj_matrix.T), "Adjacency matrix must be symmetric"
         assert np.all(np.logical_or(adj_matrix == 0, adj_matrix == 1)), "Graph must only contain 0s or 1s to begin"
         assert n == m, "Adjacency matrix must be square"
         assert n <= 20, "Adjacency matrix must be at most 20x20"
@@ -40,8 +42,8 @@ class ShannonSwitchingGame:
 
 
         self.adj_matrix = np.triu(adj_matrix, k=1).astype(np.int8)
-        self.source : int = 0
-        self.target : int = 0
+        self.source : int = source
+        self.target : int = target
         self.player_turn : Player = Player.CUTTER
 
 
@@ -62,8 +64,34 @@ class ShannonSwitchingGame:
         Returns:
         - The Player who won the game, or None if no one has won yet.
         """
-        #TODO: Implement
-        return None
+        # first, bfs to check if reinforced path to target exists
+        seen = [0] * self.num_nodes
+        seen[self.source] = 1
+        q = deque([self.source])
+        while q:
+            v = q.popleft()
+            for w in range(self.num_nodes):
+                if v != w and not seen[w] and self.adj_matrix[v, w] == -1:
+                    if w == self.target:
+                        return Player.FIXER
+                    seen[w] = 1
+                    q.append(w)
+        
+        # next, bfs to check if normal path to target exists
+        seen = [0] * self.num_nodes
+        seen[self.source] = 1
+        q = deque([self.source])
+        while q:
+            v = q.popleft()
+            for w in range(self.num_nodes):
+                if v != w and not seen[w] and self.adj_matrix[v, w] in [1, -1]:
+                    if w == self.target:
+                        return None
+                    seen[w] = 1
+                    q.append(w)
+
+        # otherwise, s and t are in different components and cutter wins
+        return Player.CUTTER
     
 
     def __cut(self, n1: int, n2: int) -> tuple[int, int]:
@@ -146,8 +174,3 @@ class ShannonSwitchingGame:
             rewards = self.__fix(min_node, max_node)
         self.player_turn = Player.FIXER if self.player_turn == Player.CUTTER else Player.CUTTER
         return rewards
-            
-
-
-    
-

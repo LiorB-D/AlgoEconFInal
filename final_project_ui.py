@@ -85,6 +85,9 @@ while len(node_positions) < len(adj_matrix):
             if distance < 20:
                 too_close = True
                 break
+            if (np.abs(pos[0]- node_pos[0])) < 10 or (np.abs(pos[1]- node_pos[1])) < 10:
+                too_close = True
+                break
 
         # Add the new node to the list if it is not too close to any other nodes
         if not too_close:

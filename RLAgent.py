@@ -77,12 +77,8 @@ class QHandler:
 
     def adjMatrixToArray(self, matrix):
         result = []
-
-        for i in range(20):
-            for j in range(i+1, 20):
-                result.append(matrix[i, j])
-
-        return np.array(result)
+        result = (np.tril(-100 * np.ones(20,20)) + matrix).flatten()
+        return result[result >= 0]
 
     def arrayIndexToMatrixPosition(self, index, n):
         count = 0

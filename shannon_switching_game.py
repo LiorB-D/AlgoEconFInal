@@ -52,7 +52,7 @@ class ShannonSwitchingGame:
         Returns an array of valid moves for the current player.
 
         Returns:
-        - An array of valid moves for the current player.
+        - An array of valid moves(array of position in adj matrix) for the current player.
         """
         return np.argwhere(self.adj_matrix == 1)
     
@@ -147,7 +147,7 @@ class ShannonSwitchingGame:
         Returns:
             A 1D numpy array representing the current observation of the game.
             The array contains the upper-triangle elements of the adjacency matrix, which are the only relevant parts of the graph.
-        """
+        """ 
         return self.adj_matrix[np.triu_indices(3, k=1)]
         
     def take_action(self, move: np.ndarray) -> tuple[int, int]:

@@ -14,7 +14,7 @@ class Player(Enum):
 
 class ShannonSwitchingGame:
 
-    def __init__(self, adj_matrix : np.ndarray, source: int, target: int) -> None:   
+    def __init__(self, adj_matrix : np.ndarray) -> None:
         """
         Initializes the ShannonSwitchingGame instance.
 
@@ -24,26 +24,24 @@ class ShannonSwitchingGame:
         - target: The index of the target node.
         """
         n, m = adj_matrix.shape
-        self.num_nodes = max(n, m)
+        assert len(adj_matrix.shape) == 2, "Adjacency matrix must be 2D"
+        assert n == m, "Adjacency matrix must be square"
         assert np.all(adj_matrix == adj_matrix.T), "Adjacency matrix must be symmetric"
         assert np.all(np.logical_or(adj_matrix == 0, adj_matrix == 1)), "Graph must only contain 0s or 1s to begin"
-        assert n == m, "Adjacency matrix must be square"
         assert n <= 20, "Adjacency matrix must be at most 20x20"
-        assert m <= 20, "Adjacency matrix must be at most 20x20"
-        assert source < n, "Source node must be in the graph"
-        assert target < n, "Target node must be in the graph"
-        assert len(adj_matrix.shape) == 2, "Adjacency matrix must be 2D"
+        
+        self.num_nodes = n
 
-        pad_rows = max(20 - n, 0)
-        pad_cols = max(20 - m, 0)
+        # make sure diagonal is all 0s
+        np.fill_diagonal(adj_matrix, 0)
+
+        pad = max(20 - n, 0)
 
         # Apply the padding
-        adj_matrix = np.pad(adj_matrix, ((0, pad_rows), (0, pad_cols)), 'constant', constant_values=0)
+        self.adj_matrix = np.pad(adj_matrix, ((0, pad), (0, pad)), 'constant', constant_values=0)
 
-
-        self.adj_matrix = np.triu(adj_matrix, k=1).astype(np.int8)
-        self.source : int = source
-        self.target : int = target
+        self.source : int = 0
+        self.target : int = 1
         self.player_turn : Player = Player.CUTTER
 
 
@@ -54,7 +52,7 @@ class ShannonSwitchingGame:
         Returns:
         - An array of valid moves(array of position in adj matrix) for the current player.
         """
-        return np.argwhere(self.adj_matrix == 1)
+        return np.argwhere(self.adj_matrix.triu() == 1)
     
 
     def get_winner(self) -> Player | None:
@@ -94,7 +92,7 @@ class ShannonSwitchingGame:
         return Player.CUTTER
     
 
-    def __cut(self, n1: int, n2: int) -> tuple[int, int]:
+    def __cut(self, n1: int, n2: int) -> bool:
         """
         Cuts the edge between nodes n1 and n2 and returns rewards.
 
@@ -103,21 +101,15 @@ class ShannonSwitchingGame:
             n2 (int): The index of the second node. Must be greater than n1.
             
         Returns:
-            A tuple of two integers representing rewards:
-            - If the move leads to CUTTER winning, (-1, 1)
-            - If the move leads to neither player winning, (0, 0)
-            - If the move is invalid, (0, -1)
+            True if the move is valid, False otherwise.
         """
         if self.adj_matrix[n1, n2] == 1:
             self.adj_matrix[n1, n2] = 0
-            winner = self.get_winner()
-            if winner == Player.CUTTER:
-                return -1, 1
-            return 0, 0
-        else: # invalid move case
-            return 0, -1
+            self.adj_matrix[n2, n1] = 0
+            return True
+        return False
         
-    def __fix(self, n1: int, n2: int) -> tuple[int, int]:
+    def __fix(self, n1: int, n2: int) -> int:
         """
         Fixes the edge between nodes n1 and n2 and returns rewards.
 
@@ -126,19 +118,13 @@ class ShannonSwitchingGame:
             n2 (int): The index of the second node. Must be greater than n1.
             
         Returns:
-            A tuple of two integers representing rewards:
-            - If the move leads to FIXER winning, (1, -1)
-            - If the move leads to neither player winning, (0, 0)
-            - If the move is invalid, (-1, 0)
+            True if the move is valid, False otherwise.
         """
         if self.adj_matrix[n1, n2] == 1:
             self.adj_matrix[n1, n2] = -1
-            winner = self.get_winner()
-            if winner == Player.FIXER:
-                return 1, -1
-            return 0, 0
-        else: # invalid move case
-            return -1, 0
+            self.adj_matrix[n2, n1] = -1
+            return True
+        return False
     
     def get_observation(self) -> np.ndarray:
         """
@@ -169,8 +155,17 @@ class ShannonSwitchingGame:
         min_node, max_node = min(move), max(move)
 
         if self.player_turn == Player.CUTTER:
-            rewards = self.__cut(min_node, max_node)
+            if not self.__cut(min_node, max_node):
+                return 0, -1
         else:
-            rewards = self.__fix(min_node, max_node)
+            if not self.__fix(min_node, max_node):
+                return -1, 0
+
+        winner = self.get_winner()
+        if winner == Player.CUTTER:
+            return -1, 1
+        if winner == Player.FIXER:
+            return 1, -1
+        
         self.player_turn = Player.FIXER if self.player_turn == Player.CUTTER else Player.CUTTER
-        return rewards
+        return 0, 0

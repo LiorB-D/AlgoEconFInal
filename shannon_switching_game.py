@@ -42,7 +42,7 @@ class ShannonSwitchingGame:
 
         self.source : int = 0
         self.target : int = 1
-        self.player_turn : Player = Player.CUTTER
+        self.player_turn : Player = Player.FIXER
 
 
     def valid_moves(self) -> np.ndarray:
@@ -52,10 +52,10 @@ class ShannonSwitchingGame:
         Returns:
         - An array of valid moves(array of position in adj matrix) for the current player.
         """
-        return np.argwhere(self.adj_matrix.triu() == 1)
+        return np.argwhere(np.triu(self.adj_matrix, 1) == 1)
     
 
-    def get_winner(self) -> Player | None:
+    def get_winner(self):
         """
         Returns the winner of the game, if there is one.
 
@@ -107,6 +107,12 @@ class ShannonSwitchingGame:
             self.adj_matrix[n1, n2] = 0
             self.adj_matrix[n2, n1] = 0
             return True
+        else:
+            print("Invalid Move Data: ")
+            print(n1)
+            print(n2)
+            print(self.adj_matrix[n1,n2])
+            print(self.adj_matrix)
         return False
         
     def __fix(self, n1: int, n2: int) -> bool:

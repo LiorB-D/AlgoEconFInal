@@ -109,7 +109,7 @@ class ShannonSwitchingGame:
             return True
         return False
         
-    def __fix(self, n1: int, n2: int) -> int:
+    def __fix(self, n1: int, n2: int) -> bool:
         """
         Fixes the edge between nodes n1 and n2 and returns rewards.
 

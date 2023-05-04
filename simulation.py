@@ -95,4 +95,4 @@ if __name__ == '__main__':
     
     # if sys.argv[2] == "train":
     # print(list(sys.argv))
-    train_agents(25, 50, 250, sys.argv[2])
+    train_agents(5, 100, 250, sys.argv[2])

@@ -11,6 +11,7 @@ class Experience:
         self.state = np.copy(adjM)
         self.action = np.copy(action)
         self.reward = r
+        self.sPrime = np.copy(adjM)
     
     def setSPrime(self, newAdj):
         self.sPrime = np.copy(newAdj)

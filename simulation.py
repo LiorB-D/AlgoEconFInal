@@ -1,4 +1,5 @@
 import numpy as np
+
 from shannon_switching_game import ShannonSwitchingGame, Player
 from RLAgent import QHandler, Experience
 
@@ -6,6 +7,7 @@ CUTTER_WIN = -1, 1
 FIXER_WIN = 1, -1
 
 # take adjacency matrix as input
+
 def simulate(adj_matrix: np.ndarray, QRL_fixer, QRL_cutter) -> int: 
     SSG = ShannonSwitchingGame(adj_matrix)
     roundCount = 0

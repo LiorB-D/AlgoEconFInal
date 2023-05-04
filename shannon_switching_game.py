@@ -143,7 +143,7 @@ class ShannonSwitchingGame:
         """ 
         return self.adj_matrix[np.triu_indices(3, k=1)]
         
-    def take_action(self, move: np.ndarray) -> tuple[int, int]:
+    def take_action(self, move: tuple[int, int]) -> tuple[int, int, bool]:
         """
         Takes an action in the game and returns the resulting rewards.
 
@@ -163,16 +163,16 @@ class ShannonSwitchingGame:
 
         if self.player_turn == Player.CUTTER:
             if not self.__cut(min_node, max_node):
-                return 0, -1
+                return 0, -1, False
         else:
             if not self.__fix(min_node, max_node):
-                return -1, 0
+                return -1, 0, False
 
         winner = self.get_winner()
+        ret = 0, 0, False
         if winner == Player.CUTTER:
-            return -1, 1
+            ret =  -1, 1, True
         if winner == Player.FIXER:
-            return 1, -1
-        
+            ret =  1, -1, True
         self.player_turn = Player.FIXER if self.player_turn == Player.CUTTER else Player.CUTTER
-        return 0, 0
+        return ret

@@ -1,5 +1,6 @@
+import sys
 import numpy as np
-
+from tqdm import tqdm
 from shannon_switching_game import ShannonSwitchingGame, Player
 from RLAgent import QHandler, Experience
 
@@ -49,15 +50,17 @@ def simulate(adj_matrix: np.ndarray, QRL_fixer, QRL_cutter) -> int:
 
 
 
-def train_agents(rounds, train_interval, target_update_interval):
-    count = 0
+def train_agents(train_interval, target_update_interval, test_file):
+    with open(test_file, 'rb') as f:
+        adjacency_matrices = np.load(f)
+    
+    num_graphs = adjacency_matrices.shape[0]
     QRL_cutter = QHandler()
     QRL_fixer = QHandler()
-    for i in range(0, rounds):
-        count = count + 1
-        adj_m = np.ones((20,20))
-        simulate(adj_m, QRL_fixer, QRL_cutter)
-        if count > 1:
+
+    for count in tqdm(range(num_graphs)):
+        simulate(adjacency_matrices[count], QRL_fixer, QRL_cutter)
+        if count > 0:
             if count % train_interval == 0:
                 QRL_fixer.trainQNetwork()
                 QRL_cutter.trainQNetwork()
@@ -69,7 +72,13 @@ def train_agents(rounds, train_interval, target_update_interval):
 
 
 if __name__ == '__main__':
-    n = int(input())
-    adj_matrix = np.array([list(map(int, input().split())) for _ in range(n)])
-    print(adj_matrix)
-    simulate(adj_matrix)
+    # n = int(input())
+    # adj_matrix = np.array([list(map(int, input().split())) for _ in range(n)])
+    # print(adj_matrix)
+    # simulate(adj_matrix)
+    if (len(sys.argv) != 2):
+        print("Usage: python3 simulation.py train/run <test_file>")
+        exit(1)
+    
+    if sys.argv[1] == "train":
+        train_agents(1, 2, sys.argv[1])

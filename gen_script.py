@@ -1,11 +1,8 @@
+import sys
 import random
-
 import networkx as nx
 import numpy as np
 from tqdm import tqdm
-
-SEED = 123
-
 
 def generate_random_graph(num_nodes, edge_prob, seed=None):
     if seed is not None:
@@ -27,11 +24,12 @@ def generate_random_adjacency_matrices(num_graphs, seed=None):
         adjacency_matrices[i] = adjacency_matrix
     return adjacency_matrices
 
-num_graphs = 1000000
+SEED = int(sys.argv[2])
+num_graphs = int(sys.argv[1])
 
 adjacency_matrices = generate_random_adjacency_matrices(num_graphs, seed=SEED)
 
-with open("test_data.npy", 'wb') as f:
+with open("test_data_" + str(num_graphs) + "_" + str(SEED) + ".npy", 'wb') as f:
     np.save(f, adjacency_matrices)
 
 #print(adjacency_matrices.shape)

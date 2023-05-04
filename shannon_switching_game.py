@@ -143,7 +143,7 @@ class ShannonSwitchingGame:
         """ 
         return self.adj_matrix[np.triu_indices(3, k=1)]
         
-    def take_action(self, move: np.ndarray) -> tuple[int, int]:
+    def take_action(self, move: np.ndarray):
         """
         Takes an action in the game and returns the resulting rewards.
 

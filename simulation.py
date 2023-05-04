@@ -50,24 +50,35 @@ def simulate(adj_matrix: np.ndarray, QRL_fixer, QRL_cutter) -> int:
 
 
 
-def train_agents(train_interval, target_update_interval, test_file):
+def train_agents(rounds, train_interval, target_update_interval, test_file):
+    # Note that rounds is how many times you want it to go through each graph in the test file
     with open(test_file, 'rb') as f:
-        adjacency_matrices = np.load(f)
+        adjacency_matrices = np.load(f,allow_pickle=True)
     
     num_graphs = adjacency_matrices.shape[0]
     QRL_cutter = QHandler()
     QRL_fixer = QHandler()
+    QRL_chaotic = QHandler()
 
-    for count in tqdm(range(num_graphs)):
-        simulate(adjacency_matrices[count], QRL_fixer, QRL_cutter)
-        if count > 0:
-            if count % train_interval == 0:
-                QRL_fixer.trainQNetwork()
-                QRL_cutter.trainQNetwork()
-            if count % target_update_interval == 0:
-                QRL_fixer.updateTargetNetwork()
-                QRL_cutter.updateTargetNetwork()
 
+    for i in range(0, rounds):
+        for count in tqdm(range(num_graphs)):
+            simulate(adjacency_matrices[count], QRL_fixer, QRL_chaotic)
+            simulate(adjacency_matrices[count], QRL_chaotic, QRL_cutter)
+            simulate(adjacency_matrices[count], QRL_fixer, QRL_chaotic)
+            if count > 0:
+                if count % train_interval == 0:
+                    QRL_fixer.trainQNetwork()
+                    QRL_cutter.trainQNetwork()
+                if count % target_update_interval == 0:
+                    QRL_fixer.updateTargetNetwork()
+                    QRL_cutter.updateTargetNetwork()
+        QRL_cutter.epsilon = 0.95 * QRL_cutter.epsilon
+        QRL_fixer.epsilon = 0.95 * QRL_cutter.epsilon
+    
+
+    QRL_cutter.model.save("Cutter Model")
+    QRL_fixer.model.save("Fixer Model")
 
 
 

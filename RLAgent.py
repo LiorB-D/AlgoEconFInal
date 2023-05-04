@@ -11,7 +11,6 @@ class Experience:
         self.state = np.copy(adjM)
         self.action = np.copy(action)
         self.reward = r
-        self.sPrime = np.copy(adjM)
     
     def setSPrime(self, newAdj):
         self.sPrime = np.copy(newAdj)
@@ -104,7 +103,7 @@ class QHandler:
         rng = np.random.default_rng()
         xsTensor = rng.choice(np.array(xs), 5000)
         ysTensor = rng.choice(np.array(ys), 5000)
-        self.model.fit(xsTensor, ysTensor, epochs = 150, verbose = 1)
+        self.model.fit(xsTensor, ysTensor, epochs = 20, verbose = 1)
         
         
 

@@ -30,20 +30,21 @@ def simulate(adj_matrix: np.ndarray, QRL_fixer, QRL_cutter) -> int:
         QRL.expReplay.append(newExp)
         if roundCount > 0:
             if QRL == QRL_cutter:
-                QRL_fixer.expReplay[-1].reward = -1 * reward[0]
-                QRL_cutter.expReplay[-1].reward = reward[1]
                 QRL_fixer.expReplay[-1].setSPrime(SSG.adj_matrix)
             else:
-                QRL_cutter.expReplay[-1].reward = -1 * reward[1]
-                QRL_fixer.expReplay[-1].reward = reward[0]
                 QRL_cutter.expReplay[-1].setSPrime(SSG.adj_matrix)
             
         roundCount = roundCount + 1
+    
     if reward == CUTTER_WIN:
         # print("CUTTER wins!")
+        QRL_fixer.expReplay[-1].reward = -1
+        QRL_cutter.expReplay[-1].reward = 1
         pass
     elif reward == FIXER_WIN:
         # print("FIXER wins!")
+        QRL_cutter.expReplay[-1].reward = -1
+        QRL_fixer.expReplay[-1].reward = 1
         pass
     else:
         print("ERROR: invalid termination of game!")
@@ -77,6 +78,8 @@ def train_agents(rounds, train_interval, target_update_interval, test_file):
                     QRL_cutter.updateTargetNetwork()
         QRL_cutter.epsilon = 0.95 * QRL_cutter.epsilon
         QRL_fixer.epsilon = 0.95 * QRL_cutter.epsilon
+        print("Starting Round: " + str(i+2))
+        print("Epsilon = " + str(QRL_cutter.epsilon))
     
 
     QRL_cutter.model.save("Cutter Model")
@@ -95,4 +98,4 @@ if __name__ == '__main__':
     
     # if sys.argv[2] == "train":
     # print(list(sys.argv))
-    train_agents(5, 100, 250, sys.argv[2])
+    train_agents(15, 150, 190, "test_data_200_7.npy")

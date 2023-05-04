@@ -110,6 +110,11 @@ class play_game:
             
             else:
                 pygame.draw.line(self.screen, self.edge_color, self.node_positions[edge[0]], self.node_positions[edge[1]], 2)
+                
+    
+    def draw_background(self):
+        background_image = pygame.image.load("starImage.jpg").convert()
+        self.screen.blit(background_image, (0, 0))
         
        
        
@@ -120,8 +125,7 @@ class play_game:
         # Set the screen size and title
         pygame.display.set_caption("Graph Visualization")
         
-        background_image = pygame.image.load("starImage.jpg").convert()
-        self.screen.blit(background_image, (0, 0))
+        self.draw_background()
         
         self.draw_edges()
         # Draw nodes
@@ -172,6 +176,7 @@ class play_game:
                             # Clear the screen and redraw everything except the removed edge
                             self.screen.fill((0, 0, 0))
                             
+                            self.draw_background()
                             self.draw_edges()
                             self.draw_nodes()
                             

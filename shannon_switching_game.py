@@ -108,12 +108,7 @@ class ShannonSwitchingGame:
             self.adj_matrix[n1, n2] = 0
             self.adj_matrix[n2, n1] = 0
             return True
-        else:
-            print("Invalid Move Data: ")
-            print(n1)
-            print(n2)
-            print(self.adj_matrix[n1,n2])
-            print(self.adj_matrix)
+        
         return False
         
     def __fix(self, n1: int, n2: int) -> bool:

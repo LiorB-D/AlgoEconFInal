@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+from tqdm import tqdm
 from shannon_switching_game import ShannonSwitchingGame, Player
 from RLAgent import QHandler, Experience
 
@@ -52,13 +53,14 @@ def simulate(adj_matrix: np.ndarray, QRL_fixer, QRL_cutter) -> int:
 def train_agents(train_interval, target_update_interval, test_file):
     with open(test_file, 'rb') as f:
         adjacency_matrices = np.load(f)
-    count = 0
+    
+    num_graphs = adjacency_matrices.shape[0]
     QRL_cutter = QHandler()
     QRL_fixer = QHandler()
-    for adj_m in adjacency_matrices:
-        count = count + 1
-        simulate(adj_m, QRL_fixer, QRL_cutter)
-        if count > 1:
+
+    for count in tqdm(range(num_graphs)):
+        simulate(adjacency_matrices[count], QRL_fixer, QRL_cutter)
+        if count > 0:
             if count % train_interval == 0:
                 QRL_fixer.trainQNetwork()
                 QRL_cutter.trainQNetwork()

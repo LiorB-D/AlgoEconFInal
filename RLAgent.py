@@ -84,13 +84,13 @@ class QHandler:
         # Get the current and next state predictions
         ys = self.model.predict(np.array(xs), verbose = 0)
         ysTarget = self.targetModel.predict(np.array(xPrimes), verbose = 0)
-        print(len(xs))
-        print(len(ys))
+        # print(len(xs))
+        # print(len(ys))
 
         # Update the target values to train on
         for ind, exp in enumerate(self.expReplay):
             if not exp.reward == 0:
-                print(exp.reward)
+                # print(exp.reward)
                 ys[ind][self.matrixPositionToArrayIndex(exp.action[0],exp.action[1])] = exp.reward
             else:
                 valid_moves = np.argwhere(exp.state == 1)
@@ -103,7 +103,7 @@ class QHandler:
         rng = np.random.default_rng()
         xsTensor = rng.choice(np.array(xs), 5000)
         ysTensor = rng.choice(np.array(ys), 5000)
-        self.model.fit(xsTensor, ysTensor, epochs = 150, verbose = 1)
+        self.model.fit(xsTensor, ysTensor, epochs = 20, verbose = 1)
         
         
 
@@ -116,12 +116,8 @@ class QHandler:
 
     # Convert a 1D array index to a 2D matrix position (row, col) in an upper triangular matrix
     def arrayIndexToMatrixPosition(self, index, n):
-        count = 0
-        for i in range(n):
-            for j in range(i + 1, n):
-                if count == index:
-                    return i, j  # Return the matrix position corresponding to the given index
-                count += 1
+        i, j = np.triu_indices(n, k=1)
+        return int(i[index]), int(j[index])
 
     # Convert a 2D matrix position (row, col) to a 1D array index in an upper triangular matrix
     def matrixPositionToArrayIndex(self, row, col):

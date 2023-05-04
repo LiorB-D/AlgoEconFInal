@@ -16,33 +16,36 @@ def simulate(adj_matrix: np.ndarray, QRL_fixer, QRL_cutter) -> int:
     while reward == (0, 0):
         if SSG.player_turn == Player.CUTTER:
             QRL = QRL_cutter
-            print("Cutter is going")
+            # print("Cutter is going")
         else:
             QRL = QRL_fixer
-            print("Fixer is going")
+            # print("Fixer is going")
 
         move, _ = QRL.get_best_move(SSG.adj_matrix)
-        print("Move: ")
-        print(move)
+        # print("Move: ")
+        # print(move)
         reward = SSG.take_action(move)
         
         newExp = Experience(SSG.adj_matrix, move, 0)
         QRL.expReplay.append(newExp)
         if roundCount > 0:
             if QRL == QRL_cutter:
-                QRL_fixer.expReplay[-1].reward = -1 * reward[0]
-                QRL_cutter.expReplay[-1].reward = reward[1]
                 QRL_fixer.expReplay[-1].setSPrime(SSG.adj_matrix)
             else:
-                QRL_cutter.expReplay[-1].reward = -1 * reward[1]
-                QRL_fixer.expReplay[-1].reward = reward[0]
                 QRL_cutter.expReplay[-1].setSPrime(SSG.adj_matrix)
             
         roundCount = roundCount + 1
+    
     if reward == CUTTER_WIN:
-        print("CUTTER wins!")
+        # print("CUTTER wins!")
+        QRL_fixer.expReplay[-1].reward = -1
+        QRL_cutter.expReplay[-1].reward = 1
+        pass
     elif reward == FIXER_WIN:
-        print("FIXER wins!")
+        # print("FIXER wins!")
+        QRL_cutter.expReplay[-1].reward = -1
+        QRL_fixer.expReplay[-1].reward = 1
+        pass
     else:
         print("ERROR: invalid termination of game!")
         exit(1)
@@ -65,7 +68,7 @@ def train_agents(rounds, train_interval, target_update_interval, test_file):
         for count in tqdm(range(num_graphs)):
             simulate(adjacency_matrices[count], QRL_fixer, QRL_chaotic)
             simulate(adjacency_matrices[count], QRL_chaotic, QRL_cutter)
-            simulate(adjacency_matrices[count], QRL_fixer, QRL_chaotic)
+            simulate(adjacency_matrices[count], QRL_fixer, QRL_cutter)
             if count > 0:
                 if count % train_interval == 0:
                     QRL_fixer.trainQNetwork()
@@ -75,6 +78,8 @@ def train_agents(rounds, train_interval, target_update_interval, test_file):
                     QRL_cutter.updateTargetNetwork()
         QRL_cutter.epsilon = 0.95 * QRL_cutter.epsilon
         QRL_fixer.epsilon = 0.95 * QRL_cutter.epsilon
+        print("Starting Round: " + str(i+2))
+        print("Epsilon = " + str(QRL_cutter.epsilon))
     
 
     QRL_cutter.model.save("Cutter Model")
@@ -87,9 +92,10 @@ if __name__ == '__main__':
     # adj_matrix = np.array([list(map(int, input().split())) for _ in range(n)])
     # print(adj_matrix)
     # simulate(adj_matrix)
-    if (len(sys.argv) != 2):
-        print("Usage: python3 simulation.py train/run <test_file>")
-        exit(1)
+    # if (len(sys.argv) != 4):
+    #     print("Usage: python3 simulation.py train/run <test_file>")
+    #     exit(1)
     
-    if sys.argv[1] == "train":
-        train_agents(1, 2, sys.argv[1])
+    # if sys.argv[2] == "train":
+    # print(list(sys.argv))
+    train_agents(15, 150, 190, "test_data_200_7.npy")

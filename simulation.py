@@ -82,8 +82,8 @@ def train_agents(rounds, train_interval, target_update_interval, test_file):
         print("Epsilon = " + str(QRL_cutter.epsilon))
     
 
-    QRL_cutter.model.save("Cutter Model")
-    QRL_fixer.model.save("Fixer Model")
+    QRL_cutter.model.save("Cutter_Model")
+    QRL_fixer.model.save("Fixer_Model")
 
 
 

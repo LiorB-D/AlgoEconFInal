@@ -36,15 +36,15 @@ class play_game:
         self.node_positions.append(spos)
         self.node_positions.append(tpos)
 
-        num_nodes = 0
+        #num_nodes = 0
 
-        for i in range(len(self.SSG.adj_matrix[0])):
-            for j in range(len(self.SSG.adj_matrix[0])):
-                if np.sum(self.SSG.adj_matrix[i]) > 0 or (self.SSG.adj_matrix[j][i]) > 0:
-                    num_nodes +=1
-                    break
+        # for i in range(len(self.SSG.adj_matrix[0])):
+        #     for j in range(len(self.SSG.adj_matrix[0])):
+        #         if np.sum(self.SSG.adj_matrix[i]) > 0 or (self.SSG.adj_matrix[j][i]) > 0:
+        #             num_nodes +=1
+        #             break
                     
-        while len(self.node_positions) < (num_nodes):
+        while len(self.node_positions) < (self.SSG.num_nodes):
                 # Generate a random position for the new node
                 x = random.randint(50, self.screen_width-50)
                 y = random.randint(50, self.screen_height-50)
@@ -70,14 +70,13 @@ class play_game:
             for j in range(i, self.SSG.adj_matrix.shape[1]):
                 if self.SSG.adj_matrix[i, j] != 0:
                     
-                    
                     edge = (i, j)
                     self.edges.append(edge)
                     pygame.draw.line(self.screen, self.edge_color, self.node_positions[i], self.node_positions[j], 2)
 
 
         self.QRL_cutter = QHandler()
-        self.QRL_cutter.model = tf.keras.models.load_model("Cutter Model/saved_model.pb")
+        self.QRL_cutter.model = tf.keras.models.load_model("Cutter_Model")
 
         self.human_cutter = False
         self.human_turn = True

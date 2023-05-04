@@ -79,8 +79,8 @@ def train_agents(rounds, train_interval, target_update_interval, test_file):
         QRL_fixer.epsilon = 0.95 * QRL_cutter.epsilon
     
 
-    QRL_cutter.model.save("Cutter Model")
-    QRL_fixer.model.save("Fixer Model")
+    QRL_cutter.model.save("Cutter_Model")
+    QRL_fixer.model.save("Fixer_Model")
 
 
 

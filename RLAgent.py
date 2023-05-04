@@ -24,7 +24,7 @@ class QHandler:
     def __init__(self):
         self.expReplay = []  # Experience replay buffer
         self.setup_model()  # Set up the neural network model
-        self.epsilon = 0  # Initial exploration rate
+        self.epsilon = 1  # Initial exploration rate
         self.discount = 0.15  # Discount factor for future rewards
 
 
@@ -107,7 +107,7 @@ class QHandler:
         rng = np.random.default_rng()
         xsTensor = rng.choice(np.array(xs), 5000)
         ysTensor = rng.choice(np.array(ys), 5000)
-        self.model.fit(xsTensor, ysTensor, epochs = 50, verbose = 1)
+        self.model.fit(xsTensor, ysTensor, epochs = 150, verbose = 1)
         
         
 

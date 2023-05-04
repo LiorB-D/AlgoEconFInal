@@ -158,7 +158,8 @@ class ShannonSwitchingGame:
             - If the move is invalid, (0, -1) if CUTTER's turn or (-1, 0) if FIXER's turn.
         """
         assert len(move) == 2, "Move must be a tuple of length 2"
-
+        print("The Move is:")
+        print(move)
         min_node, max_node = min(move), max(move)
 
         if self.player_turn == Player.CUTTER:

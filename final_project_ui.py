@@ -76,7 +76,8 @@ class play_game:
 
 
         self.QRL_cutter = QHandler()
-        self.QRL_cutter.model = tf.keras.models.load_model("Cutter_Model")
+        self.QRL_cutter.model = tf.keras.models.load_model("Cutter_Model_SPrimeSol")
+        self.QRL_cutter.epsilon = 0
 
         self.human_cutter = False
         self.human_turn = True
@@ -195,7 +196,7 @@ class play_game:
 
                             # now ai makes a move
                             if self.SSG.player_turn == Player.CUTTER and found_winner == False:
-                                ai_move = self.QRL_cutter.get_best_move(self.SSG.adj_matrix)
+                                ai_move, _ = self.QRL_cutter.get_best_move(self.SSG.adj_matrix)
                                 reward = self.SSG.take_action(ai_move)
                                 
                                 edge = (ai_move[0], ai_move[1])

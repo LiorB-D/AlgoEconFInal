@@ -50,7 +50,7 @@ class play_game:
                 too_close = False
                 for node_pos in self.node_positions:
                     distance = np.sqrt((pos[0] - node_pos[0])**2 + (pos[1] - node_pos[1])**2)
-                    if distance < 20:
+                    if distance < 50:
                         too_close = True
                         break
                     if (np.abs(pos[0]- node_pos[0])) < 10 or (np.abs(pos[1]- node_pos[1])) < 10:
@@ -82,7 +82,7 @@ class play_game:
             elif position == (self.screen_width-50, self.screen_height/2):
                 pygame.draw.circle(self.screen, self.s_color, position, 15)
             else:
-                pygame.draw.circle(self.screen, self.node_color, position, 10)
+                pygame.draw.circle(self.screen, (random.randint(0,255),random.randint(0,255),random.randint(0,255)), position, 10)
                 
                        
 
@@ -102,10 +102,18 @@ class play_game:
 
         # Set the screen size and title
         pygame.display.set_caption("Graph Visualization")
-       
+        
+        background_image = pygame.image.load("starImage.jpg").convert()
+
+       # set the background image as the current background
+        self.screen.blit(background_image, (0, 0))
+        
         self.draw_edges()
         # Draw nodes
         self.draw_nodes()
+        
+
+        
 
         # Update the display
         pygame.display.flip()
@@ -164,5 +172,18 @@ if __name__ == '__main__':
                        [1, 1, 0, 1],
                        [0, 1, 1, 0]
                        ])
-    game = play_game(adj_matrix)
+    
+    matrix = np.zeros((10, 10))
+
+    # fill the upper triangular part of the matrix with random 0's and 1's
+    for i in range(10):
+        for j in range(i, 10):
+            matrix[i, j] = np.random.randint(2)
+
+    # set the lower triangular part of the matrix to be equal to the upper triangular part
+    for i in range(1, 10):
+        for j in range(i):
+            matrix[i, j] = matrix[j, i]
+            
+    game = play_game(matrix)
     game.run_game()

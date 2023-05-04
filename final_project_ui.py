@@ -13,14 +13,13 @@ adj_matrix = np.array([[0, 1, 1, 0],
                        [0, 1, 1, 0]
                        ])
 
-#I also tested this matrix to make sure S and T are correctly labeled
 # adj_matrix = np.array([[0,1,1],
 #                       [1,0,0],
 #                       [1,0,0]])
 
 
 #Instantiate SSG class
-SSG = ShannonSwitchingGame(adj_matrix, 0, 1)
+SSG = ShannonSwitchingGame(adj_matrix)
 
 
 
@@ -34,6 +33,10 @@ def draw_nodes():
             pygame.draw.circle(screen, s_color, position, 15)
         else:
             pygame.draw.circle(screen, node_color, position, 10)
+            
+            
+            
+
 
 
 #function that draws all the edges
@@ -89,10 +92,6 @@ while len(node_positions) < (num_nodes):
         # Add the new node to the list if it is not too close to any other nodes
         if not too_close:
             node_positions.append(pos)
-
-
-
-
     
 
 # Define node and edge colors
@@ -132,14 +131,14 @@ pygame.display.flip()
 
 
 # Wait for the user to close the window
-player1_turn = True
-player2_turn = False
+
 running = True
+found_winner = False
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN and found_winner == False:
             mouse_pos = pygame.mouse.get_pos()
             for edge in edges:
                 node1_pos = node_positions[edge[0]]
@@ -154,44 +153,29 @@ while running:
                            
                 # If the distance is less than a certain threshold, accept the click
                 if distance < 3:
-                    #if it's player 1's turn make a cut                    
-                    if player1_turn==True and (player2_turn==False):                                        
-                        reward = SSG._ShannonSwitchingGame__cut(edge[0], edge[1])
-                        print(reward)
-                        edges.remove((edge[0], edge[1]))
-                        if reward == (-1, 1):
-                            print("Cutter Wins")
-                            player1_turn, player2_turn = False, False
-                        elif reward != (0,-1):
-                            player1_turn = False
-                            player2_turn = True
-                            
-                    #if it's player 2's turn reinforce 
-                    elif player2_turn==True and (player1_turn==False):
-                        reward = SSG._ShannonSwitchingGame__fix(edge[0], edge[1])
-                        print((reward))
-                        if reward == (1, -1):
-                            print("Fixer Wins")
-                            player1_turn, player2_turn = False, False
-                        elif reward != (-1, 0):
-                            player1_turn = True
-                            player2_turn = False
-                            
+                    move = (edge[0], edge[1])
+                    reward = SSG.take_action(move)
                     
+                    
+                    
+                    if reward == (-1, 1):
+                        found_winner = True
+                        edges.remove(edge)
+                        print("Cutter Wins")
+                    
+                    if SSG.player_turn == Player.FIXER and reward ==(0,0):
+                        edges.remove(edge)
+                    
+                    if reward == (1, -1):
+                        found_winner = True
+                        print("Fixer Wins")
+                        
+                        
                     # Clear the screen and redraw everything except the removed edge
                     screen.fill((0, 0, 0))
                     
                     draw_edges()
-                    
-                    
-                    for position in node_positions:
-                        if position == (50, screen_height/2):
-                            pygame.draw.circle(screen, s_color, position, 15)
-                        elif position == (screen_width-50, screen_height/2):
-                            pygame.draw.circle(screen, s_color, position, 15)
-                        else:
-                            pygame.draw.circle(screen, node_color, position, 10)
-                            
+                    draw_nodes()
                     
                     pygame.display.flip()
                     

@@ -7,23 +7,22 @@ from shannon_switching_game import ShannonSwitchingGame
 
 # Define the Experience class, which holds information about a state-action transition
 class Experience:
-    def __init__(self, action, adjM):
-        self.state = adjM
-        self.action = action
-        self.reward = 0
-        self.sPrime = []
+    def __init__(self, adjM, action, r):
+        self.state = np.copy(adjM)
+        self.action = np.copy(action)
+        self.reward = r
     
     def setSPrime(self, newAdj):
-        self.sPrime = newAdj
+        self.sPrime = np.copy(newAdj)
 
 # Define the QHandler class, which is responsible for the Q-Learning process
 class QHandler:
-    def __init__(self, gameState: ShannonSwitchingGame):
+    def __init__(self):
         self.expReplay = []  # Experience replay buffer
-        self.setup_Model()  # Set up the neural network model
-        self.epsilon = 1  # Initial exploration rate
+        self.setup_model()  # Set up the neural network model
+        self.epsilon = 0  # Initial exploration rate
         self.discount = 0.15  # Discount factor for future rewards
-        self.game_state = gameState  # Game state object
+
 
     # Set up the neural network model for Q-Learning
     def setup_model(self):
@@ -50,18 +49,19 @@ class QHandler:
 
     # Get the best move based on the current model
     def get_best_move(self, adjM):
-        valid_moves = self.game_state.valid_moves()  # Get valid moves
+        valid_moves = np.argwhere(np.triu(adjM, 1) == 1)
         valid_move_indices = self.get_valid_indices(valid_moves)  # Get the corresponding indices
 
         # Choose a random move with probability epsilon (exploration)
         if random.random() < self.epsilon:
-            return np.random.choice(valid_moves, 1)
+            randInd = np.random.randint(0, len(valid_moves))
+            return valid_moves[randInd], randInd 
         
         # Choose the move with the highest Q-value (exploitation)
-        xs = [self.adjMatrixToArray(adjM)]
+        xs = np.asarray([self.adjMatrixToArray(adjM)])
+        
         prediction = self.model.predict(xs)
-
-        best_move_ind = np.argmax(prediction[valid_move_indices])
+        best_move_ind = np.argmax(prediction[0][valid_move_indices])
         best_move = valid_moves[best_move_ind]
 
         return best_move, best_move_ind
@@ -73,34 +73,37 @@ class QHandler:
 
         # Process the experiences in the replay buffer
         for ind, exp in enumerate(self.expReplay):
-            stateArr = self.matrixPositionToArrayIndex(exp.s)
+            stateArr = self.adjMatrixToArray(exp.state)
             xs.append(stateArr)
-            if exp.r == 0:
+            if not exp.reward == 0:
                 xPrimes.append(stateArr)
             else:
-                nextStateArr = self.matrixPositionToArrayIndex(exp.sPrime)
+                nextStateArr = self.adjMatrixToArray(exp.sPrime)
                 xPrimes.append(nextStateArr)
 
         # Get the current and next state predictions
         ys = self.model.predict(np.array(xs), verbose = 0)
         ysTarget = self.targetModel.predict(np.array(xPrimes), verbose = 0)
+        print(len(xs))
+        print(len(ys))
 
         # Update the target values to train on
         for ind, exp in enumerate(self.expReplay):
-            if not exp.r == 0:
-                ys[self.matrixPositionToArrayIndex(exp.a[0],exp.a[1])] = exp.r
+            if not exp.reward == 0:
+                print(exp.reward)
+                ys[ind][self.matrixPositionToArrayIndex(exp.action[0],exp.action[1])] = exp.reward
             else:
                 valid_moves = np.argwhere(exp.state == 1)
                 valid_move_indices = self.get_valid_indices(valid_moves)
-                nextStateArr = self.matrixPositionToArrayIndex(exp.sPrime)
+                nextStateArr = self.adjMatrixToArray(exp.sPrime)
                 choices = ysTarget[ind][valid_move_indices]
-                ys[self.matrixPositionToArrayIndex(exp.a[0],exp.a[1])] = self.discount * np.max(choices)
+                ys[ind][self.matrixPositionToArrayIndex(exp.action[0],exp.action[1])] = self.discount * np.max(choices)
                 
                
         rng = np.random.default_rng()
         xsTensor = rng.choice(np.array(xs), 5000)
         ysTensor = rng.choice(np.array(ys), 5000)
-        self.model.fit(xsTensor, ysTensor, epochs = 500, verbose = 1)
+        self.model.fit(xsTensor, ysTensor, epochs = 50, verbose = 1)
         
         
 
@@ -108,8 +111,8 @@ class QHandler:
     def adjMatrixToArray(self, matrix):
         result = []
         # Add the lower triangular matrix of -100 to the input matrix, flatten the result, and keep non-negative elements
-        result = (np.tril(-100 * np.ones(20,20)) + matrix).flatten()
-        return result[result >= 0]
+        result = (np.tril(-100 * np.ones((20,20))) + matrix).flatten()
+        return result[result >= -2]
 
     # Convert a 1D array index to a 2D matrix position (row, col) in an upper triangular matrix
     def arrayIndexToMatrixPosition(self, index, n):
@@ -121,15 +124,15 @@ class QHandler:
                 count += 1
 
     # Convert a 2D matrix position (row, col) to a 1D array index in an upper triangular matrix
-    def matrixPositionToArrayIndex(row, col):
+    def matrixPositionToArrayIndex(self, row, col):
         # Calculate the index using the row and col values
         index = (row * (2 * 20 - row - 1)) // 2 + col - row - 1
         return index
 
     # Get the 1D array indices for the valid moves in a 2D matrix
-    def get_valid_indices(self, valid_move):
+    def get_valid_indices(self, valid_moves):
         result = []
-        for m in valid_move:
+        for m in valid_moves:
             # Convert each matrix position to its corresponding array index and append it to the result
             result.append(self.matrixPositionToArrayIndex(m[0], m[1]))
         return np.array(result)  # Return the valid indices as a NumPy array

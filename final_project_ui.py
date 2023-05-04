@@ -83,6 +83,23 @@ class play_game:
                 pygame.draw.circle(self.screen, self.s_color, position, 15)
             else:
                 pygame.draw.circle(self.screen, (random.randint(0,255),random.randint(0,255),random.randint(0,255)), position, 10)
+        font = pygame.font.Font(None, 36)
+
+        # create a surface object with the text to be displayed
+        s_text = font.render("S", True, (0, 0, 0))
+        t_text = font.render("T", True, (0, 0, 0))
+
+        # get the dimensions of the text surface
+        s_text_rect = s_text.get_rect()
+        t_text_rect = t_text.get_rect()
+        
+        # set the position of the text on the screen
+        s_text_rect.center = (50, self.screen_height/2)
+        t_text_rect.center = (self.screen_width-50, self.screen_height/2)
+
+        # blit the text surface to the screen
+        self.screen.blit(s_text, s_text_rect)
+        self.screen.blit(t_text, t_text_rect)
                 
                        
 
@@ -104,8 +121,6 @@ class play_game:
         pygame.display.set_caption("Graph Visualization")
         
         background_image = pygame.image.load("starImage.jpg").convert()
-
-       # set the background image as the current background
         self.screen.blit(background_image, (0, 0))
         
         self.draw_edges()

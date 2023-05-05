@@ -2,11 +2,11 @@ import pygame
 import numpy as np
 import random
 import time
-# import tensorflow as tf
-# from tensorflow import keras
-# from tensorflow.keras import layers
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
 from shannon_switching_game import ShannonSwitchingGame, Player
-# from RLAgent import QHandler, Experience
+from RLAgent import QHandler, Experience
 
 HUMAN = 0
 AI = 1
@@ -38,13 +38,6 @@ class play_game:
         self.node_positions.append(spos)
         self.node_positions.append(tpos)
 
-        #num_nodes = 0
-
-        # for i in range(len(self.SSG.adj_matrix[0])):
-        #     for j in range(len(self.SSG.adj_matrix[0])):
-        #         if np.sum(self.SSG.adj_matrix[i]) > 0 or (self.SSG.adj_matrix[j][i]) > 0:
-        #             num_nodes +=1
-        #             break
                     
         while len(self.node_positions) < (self.SSG.num_nodes):
                 # Generate a random position for the new node
@@ -77,12 +70,12 @@ class play_game:
                     pygame.draw.line(self.screen, self.edge_color, self.node_positions[i], self.node_positions[j], 2)
 
 
-        # self.QRL_cutter = QHandler()
-        # self.QRL_cutter.model = tf.keras.models.load_model("Cutter_Model_SPrimeSol")
-        # self.QRL_cutter.epsilon = 0
+        self.QRL_cutter = QHandler()
+        self.QRL_cutter.model = tf.keras.models.load_model("Cutter_Model_SPrimeSol")
+        self.QRL_cutter.epsilon = 0
 
-        # self.QRL_fixer = QHandler()
-        # self.QRL_fixer.model = tf.keras.models.load_model("Fixer_Model_SPrimeSol")
+        self.QRL_fixer = QHandler()
+        self.QRL_fixer.model = tf.keras.models.load_model("Fixer_Model_SPrimeSol")
 
         self.fixer = HUMAN
         self.cutter = HUMAN

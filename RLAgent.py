@@ -60,7 +60,7 @@ class QHandler:
         # Choose the move with the highest Q-value (exploitation)
         xs = np.asarray([self.adjMatrixToArray(adjM)])
         
-        prediction = self.model.predict(xs)
+        prediction = self.model.predict(xs, verbose = 0)
         best_move_ind = np.argmax(prediction[0][valid_move_indices])
         best_move = valid_moves[best_move_ind]
 
@@ -70,9 +70,10 @@ class QHandler:
     def trainQNetwork(self):
         xs = []
         xPrimes = []
-
+        rng = np.random.default_rng()
+        expSubset =  rng.choice(np.array(self.expReplay), 5000)
         # Process the experiences in the replay buffer
-        for ind, exp in enumerate(self.expReplay):
+        for ind, exp in enumerate(expSubset):
             stateArr = self.adjMatrixToArray(exp.state)
             xs.append(stateArr)
             if not exp.reward == 0:
@@ -88,7 +89,7 @@ class QHandler:
         # print(len(ys))
 
         # Update the target values to train on
-        for ind, exp in enumerate(self.expReplay):
+        for ind, exp in enumerate(expSubset):
             if not exp.reward == 0:
                 # print(exp.reward)
                 ys[ind][self.matrixPositionToArrayIndex(exp.action[0],exp.action[1])] = exp.reward
@@ -100,10 +101,10 @@ class QHandler:
                 ys[ind][self.matrixPositionToArrayIndex(exp.action[0],exp.action[1])] = self.discount * np.max(choices)
                 
                
-        rng = np.random.default_rng()
-        xsTensor = rng.choice(np.array(xs), 5000)
-        ysTensor = rng.choice(np.array(ys), 5000)
-        self.model.fit(xsTensor, ysTensor, epochs = 20, verbose = 1)
+        
+        xsTensor = np.array(xs)
+        ysTensor = np.array(ys)
+        self.model.fit(xsTensor, ysTensor, epochs = 50, verbose = 1)
         
         
 

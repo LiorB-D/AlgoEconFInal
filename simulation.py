@@ -98,4 +98,4 @@ if __name__ == '__main__':
     
     # if sys.argv[2] == "train":
     # print(list(sys.argv))
-    train_agents(15, 150, 190, "test_data_200_7.npy")
+    train_agents(15, 150, 450, "test_data_500_55.npy")

@@ -22,7 +22,7 @@ class play_game:
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.node_color = (255, 255, 255)
         self.s_color = (0, 255, 0)
-        self.edge_color = (255, 255, 255)
+        self.edge_color = (0, 0, 0)
         self.reinforce_edge_color = (0, 0, 255)
             
        
@@ -113,8 +113,10 @@ class play_game:
                 
     
     def draw_background(self):
-        background_image = pygame.image.load("starImage.jpg").convert()
-        self.screen.blit(background_image, (0, 0))
+        #background_image = pygame.image.load("starImage.jpg").convert()
+        #self.screen.blit(background_image, (0, 0))
+        background_color = (255,255,255)
+        self.screen.fill(background_color)
         
        
        
@@ -200,6 +202,7 @@ if __name__ == '__main__':
         for j in range(i, 10):
             matrix[i, j] = np.random.randint(2)
 
+    matrix[0,1] = 0
     # set the lower triangular part of the matrix to be equal to the upper triangular part
     for i in range(1, 10):
         for j in range(i):

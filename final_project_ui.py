@@ -71,13 +71,14 @@ class play_game:
 
 
         self.QRL_cutter = QHandler()
-        self.QRL_cutter.model = tf.keras.models.load_model("Cutter_Model_SPrimeSol")
+        self.QRL_cutter.model = tf.keras.models.load_model("Cutter_Model")
         self.QRL_cutter.epsilon = 0
 
         self.QRL_fixer = QHandler()
-        self.QRL_fixer.model = tf.keras.models.load_model("Fixer_Model_SPrimeSol")
+        self.QRL_fixer.model = tf.keras.models.load_model("Fixer_Model")
+        self.QRL_fixer.epsilon = 0
 
-        self.fixer = HUMAN
+        self.fixer = AI
         self.cutter = HUMAN
 
 
@@ -140,7 +141,7 @@ class play_game:
         self.move_made = True
     
 
-    def get_click(self) -> tuple | None:
+    def get_click(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -215,14 +216,14 @@ class play_game:
                         if human_action:
                             self.make_move(human_action)
                     else:
-                        move = self.QRL_fixer.get_move(self.SSG)
+                        move, _ = self.QRL_fixer.get_best_move(self.SSG.adj_matrix)
                         self.make_move(move)
                 else:
                     if self.cutter == HUMAN:
                         if human_action:
                             self.make_move(human_action)
                     else:
-                        move = self.QRL_cutter.get_move(self.SSG)
+                        move, _ = self.QRL_cutter.get_best_move(self.SSG.adj_matrix)
                         self.make_move(move)
             
             if self.move_made:

@@ -8,6 +8,8 @@ from tensorflow.keras import layers
 from shannon_switching_game import ShannonSwitchingGame, Player
 from RLAgent import QHandler, Experience
 
+HUMAN = 0
+AI = 1
 
 class play_game:
     
@@ -36,13 +38,6 @@ class play_game:
         self.node_positions.append(spos)
         self.node_positions.append(tpos)
 
-        #num_nodes = 0
-
-        # for i in range(len(self.SSG.adj_matrix[0])):
-        #     for j in range(len(self.SSG.adj_matrix[0])):
-        #         if np.sum(self.SSG.adj_matrix[i]) > 0 or (self.SSG.adj_matrix[j][i]) > 0:
-        #             num_nodes +=1
-        #             break
                     
         while len(self.node_positions) < (self.SSG.num_nodes):
                 # Generate a random position for the new node
@@ -79,8 +74,11 @@ class play_game:
         self.QRL_cutter.model = tf.keras.models.load_model("Cutter_Model_SPrimeSol")
         self.QRL_cutter.epsilon = 0
 
-        self.human_cutter = False
-        self.human_turn = True
+        self.QRL_fixer = QHandler()
+        self.QRL_fixer.model = tf.keras.models.load_model("Fixer_Model_SPrimeSol")
+
+        self.fixer = HUMAN
+        self.cutter = HUMAN
 
 
     def draw_nodes(self) -> None:
@@ -124,8 +122,66 @@ class play_game:
     def draw_background(self):
         background_image = pygame.image.load("starImage.jpg").convert()
         self.screen.blit(background_image, (0, 0))
+
+    def make_move(self, move: tuple) -> None:
+
+        if self.SSG.player_turn == Player.CUTTER:
+            self.edges.remove((move[0], move[1]))
+
+        reward = self.SSG.take_action(move)
+
+        if reward == (-1, 1):
+            self.found_winner = Player.CUTTER
+            print("Cutter Wins")
+        elif reward == (1, -1):
+            self.found_winner = Player.FIXER
+            print("Fixer Wins")
+
+        self.move_made = True
+    
+
+    def get_click(self) -> tuple | None:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+                break
+            if event.type == pygame.MOUSEBUTTONDOWN and self.found_winner is None:
+                mouse_pos = pygame.mouse.get_pos()
+                for edge in self.edges:
+                    if self.SSG.adj_matrix[edge[0], edge[1]] != 1:
+                        continue
+                    node1_pos = self.node_positions[edge[0]]
+                    node2_pos = self.node_positions[edge[1]]
+                    # Calculate the distance between the mouse position and the edge
+                    distance = abs((node2_pos[1] - node1_pos[1]) * mouse_pos[0] -
+                                (node2_pos[0] - node1_pos[0]) * mouse_pos[1] +
+                                node2_pos[0] * node1_pos[1] - node2_pos[1] * node1_pos[0]) / \
+                            np.sqrt((node2_pos[1] - node1_pos[1]) ** 2 +
+                                    (node2_pos[0] - node1_pos[0]) ** 2)
+                            
+                    # If the distance is less than a certain threshold, accept the click
+                    if distance < 5:
+                        return edge[0], edge[1]
+            
+        return None
+    
+
+    def draw_winner(self):
+        font = pygame.font.Font('freesansbold.ttf', 64)
+ 
+        # create a text surface object,
+        # on which text is drawn on it.
+        text = font.render("Cutter Wins!" if self.found_winner == Player.CUTTER else "Fixer Wins!", True, "red" if self.found_winner == Player.CUTTER else "blue", "white")
         
-       
+        # create a rectangular object for the
+        # text surface object
+        textRect = text.get_rect()
+        
+        # set the center of the rectangular object.
+        textRect.center = (self.screen_width // 2, self.screen_height // 8)
+
+        self.screen.blit(text, textRect)
+
        
     def run_game(self):
         # Initialize Pygame
@@ -139,90 +195,47 @@ class play_game:
         self.draw_edges()
         # Draw nodes
         self.draw_nodes()
-        
-
-        
 
         # Update the display
         pygame.display.flip()
 
-        running = True
-        found_winner = False
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                if event.type == pygame.MOUSEBUTTONDOWN and found_winner == False:
-                    mouse_pos = pygame.mouse.get_pos()
-                    for edge in self.edges:
-                        node1_pos = self.node_positions[edge[0]]
-                        node2_pos = self.node_positions[edge[1]]
-                        # Calculate the distance between the mouse position and the edge
-                        distance = abs((node2_pos[1] - node1_pos[1]) * mouse_pos[0] -
-                                    (node2_pos[0] - node1_pos[0]) * mouse_pos[1] +
-                                    node2_pos[0] * node1_pos[1] - node2_pos[1] * node1_pos[0]) / \
-                                np.sqrt((node2_pos[1] - node1_pos[1]) ** 2 +
-                                        (node2_pos[0] - node1_pos[0]) ** 2)
-                                
-                                
-                        # If the distance is less than a certain threshold, accept the click
-                        if distance < 5:
-                            move = (edge[0], edge[1])
-                            reward = self.SSG.take_action(move)                         
-                            
-                            if reward == (-1, 1):
-                                found_winner = True
-                                self.edges.remove(edge)
-                                print("Cutter Wins")
-                            
-                            if self.SSG.player_turn == Player.FIXER and reward == (0,0):
-                                self.edges.remove(edge)
-                            
-                            if reward == (1, -1):
-                                found_winner = True
-                                print("Fixer Wins")
-                                
-                            # Clear the screen and redraw everything except the removed edge
-                            self.screen.fill((0, 0, 0))
-                            
-                            self.draw_background()
-                            self.draw_edges()
-                            self.draw_nodes()
 
-                            pygame.display.flip()
+        self.running = True
+        self.found_winner = None
+        while self.running:
 
-                            time.sleep(1)
+            self.move_made = False
 
+            human_action = self.get_click()
 
-                            # now ai makes a move
-                            if self.SSG.player_turn == Player.CUTTER and found_winner == False:
-                                ai_move, _ = self.QRL_cutter.get_best_move(self.SSG.adj_matrix)
-                                reward = self.SSG.take_action(ai_move)
-                                
-                                edge = (ai_move[0], ai_move[1])
+            if not self.found_winner:
+                
+                if self.SSG.player_turn == Player.FIXER:
+                    if self.fixer == HUMAN:
+                        if human_action:
+                            self.make_move(human_action)
+                    else:
+                        move = self.QRL_fixer.get_move(self.SSG)
+                        self.make_move(move)
+                else:
+                    if self.cutter == HUMAN:
+                        if human_action:
+                            self.make_move(human_action)
+                    else:
+                        move = self.QRL_cutter.get_move(self.SSG)
+                        self.make_move(move)
+            
+            if self.move_made:
+                # Clear the screen and redraw everything except the removed edge
+                self.screen.fill((0, 0, 0))
+                self.draw_background()
+                self.draw_edges()
+                self.draw_nodes()
 
-                                if reward == (-1, 1):
-                                    found_winner = True
-                                    self.edges.remove(edge)
-                                    print("Cutter Wins")
-                                
-                                elif reward == (0,0):
-                                    self.edges.remove(edge)
-                                
-                                elif reward == (1, -1):
-                                    found_winner = True
-                                    print("Fixer Wins")
-                                
-                                self.draw_background()
-                                self.draw_edges()
-                                self.draw_nodes()
+                if self.found_winner:
+                    self.draw_winner()
 
-                                pygame.display.flip()
-
-
-                            
-                            break 
-
+                pygame.display.flip()
 
 
 if __name__ == '__main__':
